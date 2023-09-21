@@ -228,3 +228,25 @@ int main() {
 
     return 0;
 }
+
+// Good afternoon to everyone present here, and to everyone watching the live stream.
+// We're from the Google Developers Student Club. 
+// (introduce yourselves, tell your name)
+
+// Welcome to the world of Google developers. All of you must have use some sort of Google technology, regardless of which branch you're in.
+// So what is it that we do? We help bridge the gap between technology and actual learning i.e. practical learning. We do this through peer-to-peer and community learning. Our main goal is to give back to the community. The community has given us so much, so Google stresses on contributing back to it. Another major thing about us is that we focus on inclusivity. So regardless of which branch you're in or what stage of learning or coding you're in,you're always welcome in our community.
+
+// (2nd person take over)
+
+// So it turns out, GDSC JSSSTU is one of only 2 GDSC chapters in Asia to have conducted a workshop for specially abled students. It involved the students from the Polytechnic on campus. They learned the fundamentals of Android Studio and walked home with an application built by themselves installed on their smartphones.
+
+// Another important event we've been conducting every year is the Explore ML workshop, where we give the participants an intro to the booming world of Machine Learning, Deep Learning and Artificial Intelligence. 
+// Here's a picture of the workshop we had back in April. (gesture to the PPT)
+
+// We also conduct many campaigns to help students enter into Android, Flutter, Web Dev, etc. We also conduct non-technical and fun events. We have GDSC Elevate where the focus is on soft skills like communication, resume building, networking, using LinkedIn, etc.
+
+// (team pic) This was the core team of the club for the term 2022-23. We have a new team now, for this term of 2023-24, as our recruitment got over recently.
+
+// (last slide) So to know more about us, do visit our Instagram, LinkedIn and Twitter. We also have a Discord server. You can access them on this link or scan the QR code as well.
+
+// We hope to see you at our future events, to connect, learn, grow and have fun as well! Thank you.
