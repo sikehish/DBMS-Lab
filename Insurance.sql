@@ -84,17 +84,45 @@ SELECT COUNT(*) FROM accident JOIN participated USING(report_no) WHERE accident_
 SELECT COUNT(*) FROM accident JOIN participated USING(report_no) JOIN person USING(driver_id) WHERE person.driver_name='Smith';
 
 -- Add a new accident to the database; assume any values for required attributes.   
+insert into accident values
+(45562, "2024-04-05", "Mandya");
 
+insert into participated values
+("D222", "KA-21-BD-4728", 45562, 50000);
 
 -- Delete the Mazda belonging to “Smith”.   
+DELETE FROM CAR WHERE
+model='Mazda' AND reg_no IN (SELECT reg_no FROM OWNS JOIN PERSON USING(driver_id) WHERE driver_name='Smith');
 
+-- Update the damage amount for the car with reg_no of KA-09-MA-1234 in the accident with report_no 65738
+UPDATE participated 
+SET damage_amount=2000 
+WHERE reg_no="KA-09-MA-1234"
+AND report_no=65738;
 
--- Update the damage amount for the car with license number “KA09MA1234” in the accident  with report.  
-
+SELECT * FROM participated;
 
 -- A view that shows models and year of cars that are involved in accident.  
 
+CREATE OR REPLACE VIEW cars_data AS
+SELECT model, c_year
+FROM car;
+
+SELECT * FROM car;
+
 
 -- A trigger that prevents a driver from participating in more than 3 accidents in a given year. 
+DELIMITER //
+CREATE TRIGGER PreventParticipation
+BEFORE INSERT ON participated
+FOR EACH ROW
+BEGIN
+	IF 2<=(SELECT COUNT(*) FROM PARTICIPATED WHERE driver_id=new.driver_id) THEN
+		SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT='Driver in 2 accidents';
+	END IF;
+END;//
+DELIMITER ;
 
-
+INSERT INTO participated VALUES
+("D222", "KA-20-AB-4223", 66666, 20000);
