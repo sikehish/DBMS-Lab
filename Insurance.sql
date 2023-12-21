@@ -76,6 +76,8 @@ INSERT INTO participated VALUES
 ("D444", "KA-21-BD-4728", 54634, 5000),
 ("D222", "KA-09-MA-1234", 65738, 25000);
 
+SELECT * FROM person;
+
 
 -- Find the total number of people who owned cars that were involved in accidents in 2021.  
 SELECT COUNT(*) FROM accident JOIN participated USING(report_no) WHERE accident_date>='2021-01-01' AND accident_date<='2022-12-31';
@@ -103,13 +105,11 @@ AND report_no=65738;
 SELECT * FROM participated;
 
 -- A view that shows models and year of cars that are involved in accident.  
-
 CREATE OR REPLACE VIEW cars_data AS
-SELECT model, c_year
-FROM car;
+SELECT DISTINCT model, c_year
+FROM car JOIN participated USING(reg_no);
 
 SELECT * FROM car;
-
 
 -- A trigger that prevents a driver from participating in more than 3 accidents in a given year. 
 DELIMITER //
