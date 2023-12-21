@@ -93,8 +93,14 @@ insert into participated values
 ("D222", "KA-21-BD-4728", 45562, 50000);
 
 -- Delete the Mazda belonging to “Smith”.   
+SELECT * FROM CAR;
+
+-- SET SQL_SAFE_UPDATES = 0;
+
 DELETE FROM CAR WHERE
 model='Mazda' AND reg_no IN (SELECT reg_no FROM OWNS JOIN PERSON USING(driver_id) WHERE driver_name='Smith');
+
+-- SET SQL_SAFE_UPDATES = 1;
 
 -- Update the damage amount for the car with reg_no of KA-09-MA-1234 in the accident with report_no 65738
 UPDATE participated 
