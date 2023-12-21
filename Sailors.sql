@@ -20,18 +20,19 @@ create table if not exists reserves(
 	sid int not null,
 	bid int not null,
 	sdate date not null,
-  PRIMARY KEY(sid,bid);
 	foreign key (sid) references Sailors(sid) on delete cascade,
 	foreign key (bid) references Boat(bid) on delete cascade
 );
 
-insert into Sailors values
-(1,"Albert", 5, 40),
-(2, "Einstein", 5, 49),
-(3, "Hisham", 9, 18),
-(4, "Yohan", 2, 68),
-(5, "Smith", 7, 19);
+ALTER TABLE reserves
+ADD PRIMARY KEY(sid,bid);
 
+insert into Sailors values
+(1,"Albert", 5.0, 40),
+(2, "Nakul", 5.0, 49),
+(3, "Darshan", 9, 18),
+(4, "Astorm Gowda", 2, 68),
+(5, "Armstormin", 7, 19);
 
 insert into Boat values
 (1,"Boat_1", "Green"),
@@ -59,12 +60,13 @@ FROM SAILORS S
 JOIN RESERVES R ON S.sid = R.sid
 WHERE S.rating >= 8 OR R.bid = 103;
 -- OR
-SELECT DISTINCT S.sid
-FROM SAILORS S
-LEFT JOIN RESERVES R ON S.sid = R.sid
-WHERE S.rating >= 8 OR R.bid = 103;
-
-
+(select sid
+from Sailors
+where Sailors.rating>=8)
+UNION
+(select sid
+from reserves
+where reserves.bid=103);
 
 -- Find the names of the sailor who have not reserved a boat whose name contains the string "storm". Order the name in the ascending order
 
@@ -86,10 +88,6 @@ SELECT sname AS ReservationCount
 FROM ((SAILORS JOIN RESERVES USING(sid)) JOIN BOAT USING(bid))
 GROUP BY sname
 HAVING COUNT(DISTINCT(bid)) >= (SELECT COUNT(*) FROM Boat);
--- OR
-select sname from Sailors s where not exists
-	(select * from Boat b where not exists
-		(select * from reserves r where r.sid=s.sid and b.bid=r.bid));
         
 -- Find the name and age of the oldest sailor.  
 SELECT sname,age FROM SAILORS ORDER BY age DESC LIMIT 1;
@@ -120,5 +118,8 @@ BEGIN
 END;
 //
 DELIMITER ;
+
+-- Yay, you get an error!
+DELETE FROM BOAT WHERE bid=103;
 
 
