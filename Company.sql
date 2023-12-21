@@ -1,3 +1,45 @@
+CREATE DATABASE Company;
+USE Company;
+
+drop database Company;
+
+CREATE TABLE EMPLOYEE (
+    SSN INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Address VARCHAR(100),
+    Sex CHAR(1),
+    Salary INT,
+    SuperSSN INT,
+    DNo INT,
+    FOREIGN KEY (SuperSSN) REFERENCES EMPLOYEE(SSN)
+);
+
+CREATE TABLE DEPARTMENT (
+    DNo INT PRIMARY KEY,
+    DName VARCHAR(50),
+    MgrSSN INT,
+    MgrStartDate DATE,
+    FOREIGN KEY (MgrSSN) REFERENCES EMPLOYEE(SSN)
+);
+
+
+-- SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
+
+-- ALTER TABLE EMPLOYEE
+-- DROP CONSTRAINT employee_ibfk_3;
+
+-- ALTER TABLE DEPARTMENT
+-- DROP CONSTRAINT department_ibfk_1;
+
+CREATE TABLE DLOCATION (
+    DNo INT PRIMARY KEY,
+    DLoc VARCHAR(50),
+    FOREIGN KEY (DNo) REFERENCES DEPARTMENT(DNo)
+);
+
+CREATE TABLE PROJECT (
+    PNo INT PRIMARY KEY,
+    PName VARCHAR(50),
     PLocation VARCHAR(50),
     DNo INT,
     FOREIGN KEY (DNo) REFERENCES DEPARTMENT(DNo)
@@ -93,7 +135,9 @@ WHERE SSN IN (SELECT SSN FROM WORKS_ON JOIN PROJECT USING(PNo) WHERE PName="Proj
 SELECT SUM(Salary), MAX(salary), MIN(salary), AVG(salary) FROM EMPLOYEE JOIN DEPARTMENT USING(DNo) WHERE DName="Accounts";
 
 -- Retrieve the name of each employee who works on all the projects controlled by department number 5 (use NOT EXISTS operator):
-SELECT name FROM Employee;
+select Employee.ssn,name,DNo from Employee where not exists
+    (select PNo from Project p where p.DNo=3 and PNo not in
+    	(select PNo from Works_On w where w.ssn=Employee.ssn));
 
 -- For each department that has more than five employees, retrieve the department number and the number of its employees who are making more than Rs. 6,00,000:
 SELECT Dno, COUNT(*) FROM Department JOIN Employee USING(Dno) WHERE Salary>=60000 GROUP BY DNo HAVING COUNT(*)>=2;
