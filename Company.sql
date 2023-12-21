@@ -1,0 +1,92 @@
+CREATE DATABASE Company;
+USE Company;
+
+drop database Company;
+
+CREATE TABLE EMPLOYEE (
+    SSN INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Address VARCHAR(100),
+    Sex CHAR(1),
+    Salary INT,
+    SuperSSN INT,
+    DNo INT,
+    FOREIGN KEY (SuperSSN) REFERENCES EMPLOYEE(SSN)
+);
+
+CREATE TABLE DEPARTMENT (
+    DNo INT PRIMARY KEY,
+    DName VARCHAR(50),
+    MgrSSN INT,
+    MgrStartDate DATE,
+    FOREIGN KEY (MgrSSN) REFERENCES EMPLOYEE(SSN)
+);
+
+
+-- SELECT * FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS;
+
+-- ALTER TABLE EMPLOYEE
+-- DROP CONSTRAINT employee_ibfk_3;
+
+-- ALTER TABLE DEPARTMENT
+-- DROP CONSTRAINT department_ibfk_1;
+
+CREATE TABLE DLOCATION (
+    DNo INT PRIMARY KEY,
+    DLoc VARCHAR(50),
+    FOREIGN KEY (DNo) REFERENCES DEPARTMENT(DNo)
+);
+
+CREATE TABLE PROJECT (
+    PNo INT PRIMARY KEY,
+    PName VARCHAR(50),
+    PLocation VARCHAR(50),
+    DNo INT,
+    FOREIGN KEY (DNo) REFERENCES DEPARTMENT(DNo)
+);
+
+CREATE TABLE WORKS_ON (
+    SSN INT,
+    PNo INT,
+    Hours INT,
+    PRIMARY KEY (SSN, PNo),
+    FOREIGN KEY (SSN) REFERENCES EMPLOYEE(SSN),
+    FOREIGN KEY (PNo) REFERENCES PROJECT(PNo)
+);
+
+
+INSERT INTO EMPLOYEE VALUES
+(1001, 'John Doe', '123 Main St', 'M', 60000, NULL, 1),
+(1002, 'Alice Smith', '456 Oak St', 'F', 75000, 1001, 1),
+(1003, 'Bob Johnson', '789 Pine St', 'M', 90000, 1001, 2),
+(1004, 'Charlie Brown', '101 Cedar St', 'M', 80000, 1003, 2),
+(1005, 'David Kumar', '202 Maple St', 'M', 70000, 1003, 3);
+
+INSERT INTO DEPARTMENT VALUES
+(1, 'HR', 1001, '2023-01-01'),
+(2, 'IT', 1003, '2023-02-01'),
+(3, 'Accounts', 1005, '2023-03-01');
+
+INSERT INTO DLOCATION VALUES
+(1, 'New York'),
+(2, 'San Francisco'),
+(3, 'Los Angeles');
+
+INSERT INTO PROJECT VALUES
+(101, 'Project A', 'New York', 1),
+(102, 'Project B', 'San Francisco', 2),
+(103, 'Project C', 'Los Angeles', 3),
+(104, 'Project D', 'New York', 1),
+(105, 'Project E', 'San Francisco', 2);
+
+INSERT INTO WORKS_ON VALUES
+(1001, 101, 40),
+(1002, 102, 30),
+(1003, 103, 35),
+(1004, 104, 25),
+(1005, 105, 20);
+
+ALTER TABLE EMPLOYEE
+ADD FOREIGN KEY (DNo) REFERENCES DEPARTMENT(DNo) ON DELETE CASCADE;
+
+
