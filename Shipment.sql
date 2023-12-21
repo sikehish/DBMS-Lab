@@ -93,8 +93,8 @@ SELECT * FROM Shipments;
 SELECT * FROM Warehouses;
 
 
--- List the Order# and Ship_date for all orders shipped from Warehouse# "0001".
-SELECT order_id,ship_date FROM Shipments WHERE warehouse_id=01;
+-- List the Order# and Ship_date for all orders shipped from Warehouse# "1".
+SELECT order_id,ship_date FROM Shipments WHERE warehouse_id=1;
 
 
 -- List warehouse info from which the Customer named "Kumar" was supplied his orders. Produce a listing of Order #, Warehouse #.
@@ -103,6 +103,44 @@ SELECT order_id, warehouse_id FROM Shipments JOIN Orders USING(order_id) JOIN Cu
 -- Produce a listing: Cname, #ofOrders, Avg_Order_Amt, where the middle column is the total number of orders by the customer and the last column is the average order amount for that customer. (Use aggregate functions)
 SELECT cname, COUNT(*) AS numOrders, AVG(order_amt) AS Avg_Order_Amt FROM CUSTOMERS JOIN Orders USING(cust_id) GROUP BY cname;
 
+
 -- Delete all orders for customer named "Kumar"
 DELETE FROM Orders WHERE cust_id IN (SELECT cust_id FROM Customers WHERE name="Kumar");
+
+-- Find the item with the maximum unit price
+SELECT item_id,MAX(unitprice) FROM Items;
+-- ORselect cname, COUNT(*) as no_of_orders, AVG(order_amt) as avg_order_amt
+from Customers c, Orders o
+where c.cust_id=o.cust_id 
+group by cname;
+SELECT * FROM Items ORDER BY unitprice DESC LIMIT 1;
+
+-- Trigger that updates order_amount based on quantity and unitprice of order_amount:
+
+create table if not exists OrderItems (
+	order_id int not null,
+	item_id int not null,
+	qty int not null,
+	foreign key (order_id) references Orders(order_id) on delete cascade,
+	foreign key (item_id) references Items(item_id) on delete cascade
+);
+
+create table if not exists Items (
+	item_id  int primary key,
+	unitprice int not null
+);
+
+
+create table if not exists Orders (
+	order_id int primary key,
+	odate date not null,
+	cust_id int,
+	order_amt int not null,
+	foreign key (cust_id) references Customers(cust_id) on delete cascade
+);
+
+DELIMITER //
+CREATE TRIGGER update_order
+BEFORE INSERTION OrderItems
+
 
