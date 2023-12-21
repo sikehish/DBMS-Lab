@@ -126,4 +126,4 @@ DELIMITER ;
 
 -- Create a view to display orderID and shipment date of all orders shipped from a warehouse
 CREATE VIEW OrderShimpent AS
-SELECT order_id, ship_date FROM Shipments;
+SELECT order_id, ship_date FROM Shipments WHERE warehouse_id=1;
