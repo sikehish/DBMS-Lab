@@ -119,10 +119,20 @@ CREATE TRIGGER update_order
 BEFORE INSERT ON OrderItems
 FOR EACH ROW 
 BEGIN
-UPDATE Orders SET order_amt=(NEW.qty * (SELECT unitprice FROM Items WHERE Items.item_id=NEW.item_id));
+UPDATE Orders SET order_amt=(NEW.qty * (SELECT unitprice FROM Items WHERE Items.item_id=NEW.item_id)) WHERE Orders.order_id = NEW.order_id;
 END;
 //
 DELIMITER ;
+
+-- DROP TRIGGER update_order;
+-- SELECT * FROM OrderItems;
+-- SELECT * FROM Orders;
+
+INSERT INTO Items (item_id, unitprice) VALUES (1006, 600);
+-- Insert a new order with the new item
+INSERT INTO Orders (order_id, odate, cust_id, order_amt) VALUES (206, '2023-04-16', 5, '1');
+-- Insert the new item into the order
+INSERT INTO OrderItems (order_id, item_id, qty) VALUES (206, 1006, 5);
 
 -- Create a view to display orderID and shipment date of all orders shipped from a warehouse
 CREATE VIEW OrderShimpent AS
