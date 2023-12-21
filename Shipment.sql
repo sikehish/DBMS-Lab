@@ -98,22 +98,20 @@ SELECT order_id,ship_date FROM Shipments WHERE warehouse_id=1;
 
 
 -- List warehouse info from which the Customer named "Kumar" was supplied his orders. Produce a listing of Order #, Warehouse #.
-SELECT order_id, warehouse_id FROM Shipments JOIN Orders USING(order_id) JOIN Customers USING(cust_id) WHERE cname="Kumar";
+SELECT order_id, warehouse_id, Warehouses.city FROM Shipments JOIN Orders USING(order_id) JOIN Customers USING(cust_id) JOIN Warehouses USING(warehouse_id) WHERE cname="Kumar";
 
 -- Produce a listing: Cname, #ofOrders, Avg_Order_Amt, where the middle column is the total number of orders by the customer and the last column is the average order amount for that customer. (Use aggregate functions)
 SELECT cname, COUNT(*) AS numOrders, AVG(order_amt) AS Avg_Order_Amt FROM CUSTOMERS JOIN Orders USING(cust_id) GROUP BY cname;
-
 
 -- Delete all orders for customer named "Kumar"
 DELETE FROM Orders WHERE cust_id IN (SELECT cust_id FROM Customers WHERE name="Kumar");
 
 -- Find the item with the maximum unit price
 SELECT item_id,MAX(unitprice) FROM Items;
--- ORselect cname, COUNT(*) as no_of_orders, AVG(order_amt) as avg_order_amt
-from Customers c, Orders o
-where c.cust_id=o.cust_id 
-group by cname;
+-- OR
 SELECT * FROM Items ORDER BY unitprice DESC LIMIT 1;
+
+
 
 -- Trigger that updates order_amount based on quantity and unitprice of order_amount
 DELIMITER //
