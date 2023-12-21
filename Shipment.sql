@@ -115,32 +115,17 @@ where c.cust_id=o.cust_id
 group by cname;
 SELECT * FROM Items ORDER BY unitprice DESC LIMIT 1;
 
--- Trigger that updates order_amount based on quantity and unitprice of order_amount:
-
-create table if not exists OrderItems (
-	order_id int not null,
-	item_id int not null,
-	qty int not null,
-	foreign key (order_id) references Orders(order_id) on delete cascade,
-	foreign key (item_id) references Items(item_id) on delete cascade
-);
-
-create table if not exists Items (
-	item_id  int primary key,
-	unitprice int not null
-);
-
-
-create table if not exists Orders (
-	order_id int primary key,
-	odate date not null,
-	cust_id int,
-	order_amt int not null,
-	foreign key (cust_id) references Customers(cust_id) on delete cascade
-);
-
+-- Trigger that updates order_amount based on quantity and unitprice of order_amount
 DELIMITER //
 CREATE TRIGGER update_order
-BEFORE INSERTION OrderItems
+BEFORE INSERT ON OrderItems
+FOR EACH ROW 
+BEGIN
+UPDATE Orders SET order_amt=(NEW.qty * (SELECT unitprice FROM Items WHERE Items.item_id=NEW.item_id));
+END;
+//
+DELIMITER ;
 
-
+-- Create a view to display orderID and shipment date of all orders shipped from a warehouse
+CREATE VIEW OrderShimpent AS
+SELECT order_id, ship_date FROM Shipments;
