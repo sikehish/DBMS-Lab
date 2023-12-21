@@ -43,25 +43,25 @@ create table if not exists Shipments (
 );
 
 INSERT INTO Customers VALUES
-(1, "John Kumar", "Mysuru"),
-  (2, "Alice", "Bengaluru"),
-(3, "Bob Kumar", "Mumbai"),
-(4, "Chrlie", "Dehli"),
-(5, "David Kumar", "Bengaluru");
+(0001, "Customer_1", "Mysuru"),
+(0002, "Customer_2", "Bengaluru"),
+(0003, "Kumar", "Mumbai"),
+(0004, "Customer_4", "Dehli"),
+(0005, "Customer_5", "Bengaluru");
 
 INSERT INTO Orders VALUES
-(101, "2020-01-14", 1, 2000),
-(102, "2021-04-13", 2, 500),
-(103, "2019-10-02", 3, 2500),
-(104, "2019-05-12", 5, 1000),
-(105, "2020-12-23", 4, 1200);
+(001, "2020-01-14", 0001, 2000),
+(002, "2021-04-13", 0002, 500),
+(003, "2019-10-02", 0003, 2500),
+(004, "2019-05-12", 0005, 1000),
+(005, "2020-12-23", 0004, 1200);
 
 INSERT INTO Items VALUES
-(1, 400),
-(2, 200),
-(3, 1000),
-(4, 100),
-(5, 500);
+(0001, 400),
+(0002, 200),
+(0003, 1000),
+(0004, 100),
+(0005, 500);
 
 INSERT INTO Warehouses VALUES
 (0001, "Mysuru"),
@@ -71,18 +71,18 @@ INSERT INTO Warehouses VALUES
 (0005, "Chennai");
 
 INSERT INTO OrderItems VALUES 
-(101, 1, 5),
-(102, 5, 1),
-(103, 5, 5),
-(104, 3, 1),
-(105, 4, 12);
+(001, 0001, 5),
+(002, 0005, 1),
+(003, 0005, 5),
+(004, 0003, 1),
+(005, 0004, 12);
 
 INSERT INTO Shipments VALUES
-(101, 2, "2020-01-16"),
-(102, 1, "2021-04-14"),
-(103, 4, "2019-10-07"),
-(104, 3, "2019-05-16"),
-(105, 5, "2020-12-23");
+(001, 0002, "2020-01-16"),
+(002, 0001, "2021-04-14"),
+(003, 0004, "2019-10-07"),
+(004, 0003, "2019-05-16"),
+(005, 0005, "2020-12-23");
 
 
 SELECT * FROM Customers;
@@ -93,5 +93,16 @@ SELECT * FROM Shipments;
 SELECT * FROM Warehouses;
 
 
--- List the Order# and Ship_date for all orders shipped from Warehouse# "2".
-select order_id,ship_date from Shipments where warehouse_id=0001;
+-- List the Order# and Ship_date for all orders shipped from Warehouse# "0001".
+SELECT order_id,ship_date FROM Shipments WHERE warehouse_id=01;
+
+
+-- List warehouse info from which the Customer named "Kumar" was supplied his orders. Produce a listing of Order #, Warehouse #.
+SELECT order_id, warehouse_id FROM Shipments JOIN Orders USING(order_id) JOIN Customers USING(cust_id) WHERE cname="Kumar";
+
+-- Produce a listing: Cname, #ofOrders, Avg_Order_Amt, where the middle column is the total number of orders by the customer and the last column is the average order amount for that customer. (Use aggregate functions)
+SELECT cname, COUNT(*) AS numOrders, AVG(order_amt) AS Avg_Order_Amt FROM CUSTOMERS JOIN Orders USING(cust_id) GROUP BY cname;
+
+-- Delete all orders for customer named "Kumar"
+DELETE FROM Orders WHERE cust_id IN (SELECT cust_id FROM Customers WHERE name="Kumar");
+
