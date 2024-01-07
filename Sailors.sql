@@ -20,12 +20,11 @@ create table if not exists reserves(
 	sid int not null,
 	bid int not null,
 	sdate date not null,
+    PRIMARY KEY(sid,bid),
 	foreign key (sid) references Sailors(sid) on delete cascade,
 	foreign key (bid) references Boat(bid) on delete cascade
 );
 
-ALTER TABLE reserves
-ADD PRIMARY KEY(sid,bid);
 
 insert into Sailors values
 (1,"Albert", 5.0, 40),
@@ -51,75 +50,69 @@ SELECT * FROM Sailors;
 SELECT * FROM Boat;
 SELECT * FROM reserves;
 
--- Find the colours of the boats reserved by Albert
-SELECT DISTINCT(color) FROM (RESERVES JOIN Boat USING(bid)) JOIN Sailors USING(sid) WHERE sname='Albert';
 
--- Find all the sailor sids who have rating atleast 8 or reserved boat 103
-SELECT DISTINCT S.sid
-FROM SAILORS S
-JOIN RESERVES R ON S.sid = R.sid
-WHERE S.rating >= 8 OR R.bid = 103;
+--     Find the colours of boats reserved by Albert
+SELECT color FROM Boat JOIN reserves USING(bid) JOIN Sailors USING(sid) WHERE sname="Albert";
+
+--     Find all sailor id’s of sailors who have a rating of at least 8 or reserved boat 103
+(SELECT sid FROM Sailors WHERE rating>=8)
+UNION  
+(SELECT sid FROM reserves where bid=103); 
 -- OR
-(select sid
-from Sailors
-where Sailors.rating>=8)
-UNION
-(select sid
-from reserves
-where reserves.bid=103);
+SELECT sid 
+FROM Sailors JOIN reserves USING(sid)
+WHERE rating>=8 OR bid=103;
 
--- Find the names of the sailor who have not reserved a boat whose name contains the string "storm". Order the name in the ascending order
+--     Find the names of sailors who have not reserved a boat whose name contains the string “storm”. Order the names in ascending order.
+-- (3 in this case for convinience) 
 
--- Issue with the below stmt is that it searches for "storm" in sname  rather than bname
--- select sname FROM Sailors
--- WHERE sname LIKE '%storm%'
--- AND sid NOT IN(SELECT DISTINCT(sid) FROM RESERVES);
+-- Where  bname isnt containing  strorm(3 in this case for convinience)
+ SELECT * FROM sailors WHERE sid NOT IN (SELECT sid FROM Boat JOIN reserves USING(bid) WHERE bname LIKE "%3");
+ 
+-- Where sname isnt containing storm(Gowda in this case for convinience)
+SELECT * FROM Sailors WHERE
+sname NOT LIKE "%Gowda%" AND
+sid NOT IN (SELECT sid FROM RESERVES);
 
--- Checking for 3 instead of storm 
-select sid,sname FROM Sailors
-WHERE sid NOT IN(SELECT sid FROM ((SAILORS JOIN RESERVES USING(sid)) JOIN BOAT USING(bid)) WHERE bname LIKE '%3%');
--- OR
-select sid,sname FROM SAILORS Where sid NOT IN (select s.sid from SAILORS s join RESERVES r on r.sid=s.sid join BOAT b on b.bid=r.bid WHERE b.bname LIKE '%3%');
-
--- Find the names of sailors who have reserved all boats 
--- SET @numOfBoats = (SELECT COUNT(*) FROM Boat);
--- SELECT @numOfBoats;
-SELECT sname AS ReservationCount
-FROM ((SAILORS JOIN RESERVES USING(sid)) JOIN BOAT USING(bid))
+--     Find the names of sailors who have reserved all boats.
+SELECT sname FROM Sailors
+JOIN Reserves USING (sid) JOIN Boat USING(bid)
 GROUP BY sname
-HAVING COUNT(DISTINCT(bid)) >= (SELECT COUNT(*) FROM Boat);
+HAVING COUNT(*)>=(SELECT COUNT(*) FROM Boat);
+-- OR
+select sname from sailors s where not exists
+	(select * from boat b where not exists
+		(select * from reserves r where r.sid=s.sid and b.bid=r.bid)); 
         
--- Find the name and age of the oldest sailor.  
-SELECT sname,age FROM SAILORS ORDER BY age DESC LIMIT 1;
+--     Find the name and age of the oldest sailor.
+SELECT sname, age FROM Sailors ORDER BY age DESC LIMIT 1;
 
--- For each boat which was reserved by at least 2 sailors with age >= 40, find the boat id and  the average age of such sailors.
-SELECT bid, AVG(Sailors.age), COUNT(*) FROM (SAILORS JOIN RESERVES USING(sid)) JOIN BOAT USING(bid) WHERE Sailors.age>=40 GROUP BY bid HAVING COUNT(sid)>=2;
+--     For each boat which was reserved by at least 2 sailors with age >= 40, find the boat id and the average age of such sailors.
+SELECT bid, AVG(age) FROM Boat JOIN reserves USING(bid) JOIN Sailors USING(sid) WHERE age>=40 GROUP BY bid HAVING COUNT(*)>=2;
 
--- Create a view that shows the names and colours of all the boats that have been reserved by a sailor with a specific rating. 
-CREATE OR REPLACE VIEW view_lol AS
-SELECT DISTINCT Boat.bname, Boat.color
-FROM Reserves
-JOIN Boat USING (bid)
-JOIN Sailors USING (sid)
-WHERE rating=5;
+--     Create a view that shows the names and colours of all the boats that have been reserved by a sailor with a specific rating.
+CREATE VIEW view1 AS 
+SELECT bname, color FROM Boat WHERE bid IN(SELECT bid FROM reserves WHERE sid IN(SELECT sid FROM sailors where rating>5));
+-- OR
+CREATE VIEW view2 AS 
+SELECT bname,color FROM Boat join reserves using(bid) join sailors using(sid) where rating>5;
 
-SELECT * FROM view_lol;
-
--- A trigger that prevents boats from being deleted If they have active reservations. 
-DELIMITER // 
-CREATE TRIGGER delete_trigger
+--     A trigger that prevents boats from being deleted If they have active reservations.
+DROP TRIGGER tr_1
+DELIMITER //
+CREATE TRIGGER tr_1
 BEFORE DELETE ON Boat
 FOR EACH ROW
 BEGIN
-	IF OLD.bid IN (SELECT bid FROM RESERVES) THEN
+	IF OLD.bid IN(SELECT bid FROM reserves) THEN 
+    -- OR IF OLD.bid IN(SELECT bid FROM reserves WHERE bid=OLD.bid) THEN
 		SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT ='HAHAHAHAH';
+        SET MESSAGE_TEXT='Boat has active reservations and cannot be deleted';
 	END IF;
 END;
 //
 DELIMITER ;
 
--- Yay, you get an error!
 DELETE FROM BOAT WHERE bid=103;
 
 
