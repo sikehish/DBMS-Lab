@@ -68,7 +68,8 @@ WHERE rating>=8 OR bid=103;
 
 -- Where  bname isnt containing  strorm(3 in this case for convinience)
  SELECT * FROM sailors WHERE sid NOT IN (SELECT sid FROM Boat JOIN reserves USING(bid) WHERE bname LIKE "%3");
- 
+ -- OR
+SELECT * FROM Sailors WHERE sid NOT IN(SELECT sid FROM RESERVES WHERE bid IN (SELECT bid FROM Boat WHERE bname LIKE "%3"));
 -- Where sname isnt containing storm(Gowda in this case for convinience)
 SELECT * FROM Sailors WHERE
 sname NOT LIKE "%Gowda%" AND
