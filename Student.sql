@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS Student_enrollment;
 CREATE DATABASE Student_enrollment;
 USE Student_enrollment;
 
@@ -27,14 +28,10 @@ CREATE TABLE ENROLL (
 
 CREATE TABLE TEXT (
     book_ISBN INT PRIMARY KEY,
-    book_title VARCHAR(50),
+    book_title VARCHAR(250),
     publisher VARCHAR(50),
     author VARCHAR(50)
 );
-
--- ALTER TABLE TEXT
--- MODIFY publisher VARCHAR(255);
-
 
 CREATE TABLE BOOK_ADOPTION (
     course_id INT,
@@ -81,7 +78,7 @@ INSERT INTO BOOK_ADOPTION VALUES
 (104, 1, 1004),
 (105, 1, 1005);
 
--- 	Demonstrate how you add a new text book to the database and make this book be adopted by some department:
+-- 1. 	Demonstrate how you add a new text book to the database and make this book be adopted by some department:
 INSERT INTO TEXT VALUES(
 	1006, 'NoSQL for beginners', 'ADK Publishers', 'Dong T'
 );
@@ -91,36 +88,17 @@ INSERT INTO BOOK_ADOPTION VALUES(
 );
 
 
--- Produce a list of text books (include Course #, Book-ISBN, Book-title) in the alphabetical order for courses offered by the ‘CS’ department that use more than two books:
+-- 2.	Produce a list of text books (include Course #, Book-ISBN, Book-title) in the alphabetical order for courses offered by the ‘CS’ department that use more than two books.  
+SELECT course_id, book_isbn, book_title FROM BOOK_ADOPTION JOIN COURSE USING(course_id) JOIN TEXT USING(book_isbn) WHERE dept="CS" 
+AND course_id IN(SELECT course_id FROM BOOK_ADOPTION GROUP BY course_id HAVING COUNT(*)>=2) ORDER BY book_title DESC;
+-- OR
 SELECT course_id, book_ISBN, book_title 
 FROM TEXT JOIN BOOK_ADOPTION USING(book_ISBN) 
 JOIN COURSE USING(course_id) 
  WHERE dept="CS" AND 
  (SELECT COUNT(course_id) FROM BOOK_ADOPTION WHERE course_id=Course.course_id)>=2;
--- OR
-SELECT c.course_id,t.book_isbn,t.book_title
- FROM Course c,Book_adoption ba,Text t
- WHERE c.course_id=ba.course_id
- AND ba.book_isbn=t.book_isbn
- AND c.dept='CS'
- AND 2<=(
- SELECT COUNT(book_isbn)
- FROM book_adoption b
- WHERE c.course_id=b.course_id)
- ORDER BY t.book_title;
 
-
--- List any department that has all its adopted books published by a specific publisher:
-SELECT dept
-FROM COURSE
-WHERE NOT EXISTS (
-    SELECT 1
-    FROM BOOK_ADOPTION
-    JOIN TEXT ON BOOK_ADOPTION.book_ISBN = TEXT.book_ISBN
-    WHERE COURSE.course_id = BOOK_ADOPTION.course_id
-    AND TEXT.publisher <> 'Stewart'
-);
--- OR
+-- 3.	List any department that has all its adopted books published by a specific publisher. 
 SELECT dept FROM
 COURSE WHERE dept IN(
 	SELECT dept FROM COURSE JOIN BOOK_ADOPTION USING(course_id) JOIN TEXT USING(book_ISBN) WHERE publisher='Stewart'
@@ -131,33 +109,28 @@ dept NOT IN(
 );
 
 
--- List the students who have scored maximum marks in ‘DBMS’ course:
+-- 4.	List the students who have scored maximum marks in ‘DBMS’ course. 
+SELECT regno, name, marks FROM ENROLL JOIN Student USING(regno) WHERE course_id IN(SELECT course_id FROM Course WHERE cname="Database Systems") ORDER BY marks DESC LIMIT 1;
+-- OR
 SELECT * FROM Student JOIN Enroll USING(regno) JOIN Course USING(course_id) WHERE cname='Database Systems' ORDER BY marks DESC LIMIT 1;
 
--- Create a view to display all the courses opted by a student along with marks obtained:
-INSERT INTO ENROLL VALUES 
-('S1', 105, 1, 99);
+-- 5.	Create a view to display all the courses opted by a student along with marks obtained.
+CREATE VIEW vi AS
+SELECT regno, name,cname,marks FROM COURSE JOIN ENROLL USING(course_id) JOIN STUDENT USING(regno) WHERE regno="S1";
 
-CREATE VIEW disp AS
-SELECT regno, name, cname, marks FROM Student JOIN Enroll USING(regno) JOIN Course USING(course_id) WHERE regno="S1"; 
--- OR
-CREATE VIEW disp AS
-SELECT regno, name, cname, marks FROM Student JOIN Enroll USING(regno) JOIN Course USING(course_id) WHERE name="JOHN DOE";
-
--- Create a trigger that prevents a student from enrolling in a course if the marks prerequisite is less than 40:
+-- 6.	Create a trigger that prevents a student from enrolling in a course if the marks prerequisite is less than  40.
 DELIMITER //
-CREATE TRIGGER stud_trigger
-BEFORE INSERT ON ENROLL
-FOR EACH ROW
+CREATE TRIGGER tr
+BEFORE INSERT ON ENROLL 
+FOR EACH ROW 
 BEGIN
-	IF NEW.marks < 40 THEN
+	IF NEW.marks<40 THEN
 		SIGNAL SQLSTATE '45000'
-		SET MESSAGE_TEXT="Score better fam";
-	END IF;
+        SET message_text="ERRR!";
+        END IF;
 END;
 //
-DELIMITER //
-
+DELIMITER ;
 -- Testing the trigger
 INSERT INTO ENROLL VALUES
 ('S1', 103, 1, 33);
