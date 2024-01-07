@@ -83,7 +83,7 @@ SELECT COUNT(*) FROM participated JOIN accident USING(report_no) WHERE accident_
 -- OR
 SELECT COUNT(*) FROM participated JOIN accident USING(report_no) WHERE accident_date LIKE '2021%';
 -- OR
-SELECT COUNT(*) FROM participated JOIN accident USING(report_no) WHERE year(accident_date)='2021%';
+SELECT COUNT(*) FROM participated JOIN accident USING(report_no) WHERE year(accident_date)='2021';
 -- OR
 SELECT COUNT(*) FROM participated JOIN accident USING(report_no) JOIN OWNS USING(reg_no) WHERE accident_date>='2021-01-01' AND accident_date<='2021-12-31';
 
