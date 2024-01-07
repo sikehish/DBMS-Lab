@@ -76,59 +76,102 @@ INSERT INTO participated VALUES
 ("D444", "KA-21-BD-4728", 54634, 5000),
 ("D222", "KA-09-MA-1234", 65738, 25000);
 
-SELECT * FROM person;
+SELECT * FROM participated;
+
+--     Find the total number of people who owned cars that were involved in accidents in 2021.
+SELECT COUNT(*) FROM participated JOIN accident USING(report_no) WHERE accident_date>='2021-01-01' AND accident_date<='2021-12-31';
+-- OR
+SELECT COUNT(*) FROM participated JOIN accident USING(report_no) WHERE accident_date LIKE '2021%';
+-- OR
+SELECT COUNT(*) FROM participated JOIN accident USING(report_no) WHERE year(accident_date)='2021%';
+-- OR
+SELECT COUNT(*) FROM participated JOIN accident USING(report_no) JOIN OWNS USING(reg_no) WHERE accident_date>='2021-01-01' AND accident_date<='2021-12-31';
 
 
--- Find the total number of people who owned cars that were involved in accidents in 2021.  
-SELECT COUNT(*) FROM accident JOIN participated USING(report_no) WHERE accident_date>='2021-01-01' AND accident_date<='2022-12-31';
+--     Find the number of accidents in which the cars belonging to “Smith” were involved.
+SELECT COUNT(*) FROM participated JOIN person using(driver_id) WHERE driver_name LIKE '%Smith%';
+-- OR
+SELECT COUNT(*)
+FROM participated 
+WHERE driver_id IN (
+	SELECT driver_id FROM 
+    person WHERE driver_name LIKE "%smith%");
 
--- Find the number of accidents in which the cars belonging to “Smith” were involved.   
-SELECT COUNT(*) FROM accident JOIN participated USING(report_no) JOIN person USING(driver_id) WHERE person.driver_name='Smith';
 
--- Add a new accident to the database; assume any values for required attributes.   
+--     Add a new accident to the database; assume any values for required attributes.
 insert into accident values
 (45562, "2024-04-05", "Mandya");
-
 insert into participated values
 ("D222", "KA-21-BD-4728", 45562, 50000);
 
--- Delete the Mazda belonging to “Smith”.   
-SELECT * FROM CAR;
+--     Delete the Mazda belonging to “Smith”.
+DELETE FROM CAR
+WHERE model="Mazda" AND reg_no IN (SELECT reg_no FROM owns JOIN person USING(driver_id) WHERE driver_name="Smith");  
 
--- SET SQL_SAFE_UPDATES = 0;
-
-DELETE FROM CAR WHERE
-model='Mazda' AND reg_no IN (SELECT reg_no FROM OWNS JOIN PERSON USING(driver_id) WHERE driver_name='Smith');
-
--- SET SQL_SAFE_UPDATES = 1;
-
--- Update the damage amount for the car with reg_no of KA-09-MA-1234 in the accident with report_no 65738
+-- 5.Update the damage amount for the car with license number “KA09MA1234” in the accident with report number 65738.
 UPDATE participated 
-SET damage_amount=2000 
+SET damage_amount=750000 
 WHERE reg_no="KA-09-MA-1234"
 AND report_no=65738;
 
 SELECT * FROM participated;
 
--- A view that shows models and year of cars that are involved in accident.  
+--     A view that shows models and year of cars that are involved in accident.
+CREATE VIEW hoo AS
+SELECT model,c_year FROM Car
+WHERE reg_no IN (SELECT reg_no FROM participated);
+-- OR
 CREATE OR REPLACE VIEW cars_data AS
 SELECT DISTINCT model, c_year
-FROM car JOIN participated USING(reg_no);
+FROM car JOIN participated USING(reg_no); 
 
-SELECT * FROM car;
+--     A trigger that prevents a driver from participating in more than 3 accidents(overall) - EASY.
 
--- A trigger that prevents a driver from participating in more than 3 accidents in a given year. 
+-- DROP TRIGGER IF EXISTS tr2;
+-- DELIMITER //
+-- CREATE TRIGGER tr2
+-- BEFORE INSERT ON participated
+-- FOR EACH ROW
+-- BEGIN
+-- 	IF (SELECT COUNT(*) FROM participated WHERE driver_id=NEW.driver_id) >=2 THEN
+-- 		SIGNAL SQLSTATE '45000'
+--         SET MESSAGE_TEXT="ERRRRRR";
+-- 	END IF;
+-- END;
+-- //
+-- DELIMITER ;
+
+--     A trigger that prevents a driver from participating in more than 3 accidents in a given year.
+
+DROP TRIGGER IF EXISTS tr2;
 DELIMITER //
-CREATE TRIGGER PreventParticipation
+CREATE TRIGGER tr2
 BEFORE INSERT ON participated
 FOR EACH ROW
 BEGIN
-	IF 2<=(SELECT COUNT(*) FROM PARTICIPATED WHERE driver_id=new.driver_id) THEN
-		SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT='Driver in 2 accidents';
+	IF (
+        SELECT COUNT(*) AS accident_count
+        FROM participated
+        JOIN accident USING(report_no)
+        WHERE driver_id = NEW.driver_id
+        AND year(accident_date)=(SELECT year(accident_date) FROM accident WHERE report_no=NEW.report_no)
+    ) >= 3 THEN
+		SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERRRRRR';
 	END IF;
-END;//
+END;
+//
 DELIMITER ;
+
 
 INSERT INTO participated VALUES
 ("D222", "KA-20-AB-4223", 66666, 20000);
+
+-- DELETE FROM participated 
+-- WHERE driver_id="D111" AND reg_no="KA-20-AB-4223";
+
+SELECT * FROM participated;
+
+
+
+
