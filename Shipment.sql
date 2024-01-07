@@ -93,47 +93,54 @@ SELECT * FROM Shipments;
 SELECT * FROM Warehouses;
 
 
--- List the Order# and Ship_date for all orders shipped from Warehouse# "1".
-SELECT order_id,ship_date FROM Shipments WHERE warehouse_id=1;
+--     List the Order# and Ship_date for all orders shipped from Warehouse# "W2".
+SELECT order_id,ship_date FROM Shipments WHERE warehouse_id=2;
 
-
--- List warehouse info from which the Customer named "Kumar" was supplied his orders. Produce a listing of Order #, Warehouse #.
+--     List the Warehouse information from which the Customer named "Kumar" was supplied his orders. Produce a listing of Order#, Warehouse#.
+SELECT * FROM Warehouses where warehouse_id in(SELECT warehouse_id FROM Shipments WHERE order_id in(SELECT order_id FROM Orders WHERE cust_id IN(SELECT cust_id FROM Customers WHERE cname="Kumar")));
+-- OR
 SELECT order_id, warehouse_id, Warehouses.city FROM Shipments JOIN Orders USING(order_id) JOIN Customers USING(cust_id) JOIN Warehouses USING(warehouse_id) WHERE cname="Kumar";
 
--- Produce a listing: Cname, #ofOrders, Avg_Order_Amt, where the middle column is the total number of orders by the customer and the last column is the average order amount for that customer. (Use aggregate functions)
+--     Produce a listing: Cname, #ofOrders, Avg_Order_Amt, where the middle column is the total number of orders by the customer and the last column is the average order amount for that customer. (Use aggregate functions).
+SELECT cname, COUNT(*) as "No of Orders", AVG(order_amt) AS 'Avg_Order_Amt' FROM Customers JOIN Orders USING(cust_id) GROUP BY cust_id;
+-- OR 
 SELECT cname, COUNT(*) AS numOrders, AVG(order_amt) AS Avg_Order_Amt FROM CUSTOMERS JOIN Orders USING(cust_id) GROUP BY cname;
 
--- Delete all orders for customer named "Kumar"
-DELETE FROM Orders WHERE cust_id IN (SELECT cust_id FROM Customers WHERE name="Kumar");
+--     Delete all orders for customer named "Kumar".
+DELETE FROM Orders
+WHERE cust_id IN(SELECT cust_id FROM Customers WHERE cname="Kumar"); 
 
--- Find the item with the maximum unit price
-SELECT item_id,MAX(unitprice) FROM Items;
+SELECT * FROM Orders JOIN Customers USING(cust_id);
+
+--     Find the item with the maximum unit price.
+SELECT * FROM items ORDER BY unitprice DESC LIMIT 1;
 -- OR
-SELECT * FROM Items ORDER BY unitprice DESC LIMIT 1;
+SELECT MAX(unitprice) AS max_unitprice
+FROM Items;
+-- OR
+SELECT * 
+FROM items 
+WHERE unitprice IN (SELECT MAX(unitprice) FROM items);
 
 
-
--- Trigger that updates order_amount based on quantity and unitprice of order_amount
+--     A trigger that updates order_amount based on quantity and unitprice of order_item.
 DELIMITER //
 CREATE TRIGGER update_order
-BEFORE INSERT ON OrderItems
+AFTER INSERT ON OrderItems
 FOR EACH ROW 
 BEGIN
 UPDATE Orders SET order_amt=(NEW.qty * (SELECT unitprice FROM Items WHERE Items.item_id=NEW.item_id)) WHERE Orders.order_id = NEW.order_id;
 END;
 //
 DELIMITER ;
-
--- DROP TRIGGER update_order;
--- SELECT * FROM OrderItems;
--- SELECT * FROM Orders;
-
 INSERT INTO Items (item_id, unitprice) VALUES (1006, 600);
 -- Insert a new order with the new item
-INSERT INTO Orders (order_id, odate, cust_id, order_amt) VALUES (206, '2023-04-16', 5, '1');
+INSERT INTO Orders (order_id, odate, cust_id, order_amt) VALUES (206, '2023-04-16', 5, 1);
 -- Insert the new item into the order
 INSERT INTO OrderItems (order_id, item_id, qty) VALUES (206, 1006, 5);
+SELECT * FROM Orders;
 
--- Create a view to display orderID and shipment date of all orders shipped from a warehouse
-CREATE VIEW OrderShimpent AS
+
+--     Create a view to display orderID and shipment date of all orders shipped from a warehouse.
+CREATE VIEW vi AS
 SELECT order_id, ship_date FROM Shipments WHERE warehouse_id=1;
